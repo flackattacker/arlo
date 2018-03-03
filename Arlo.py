@@ -15,7 +15,7 @@
 ##
 
 # 14 Sep 2016, Len Shustek: Added Logout()
-# 17 Jul 2017, Andreas Jakl: Port to Python 3 (https://www.andreasjakl.com/using-netgear-arlo-security-arloqs-for-periodic-recording/)
+# 17 Jul 2017, Andreas Jakl: Port to Python 3 (https://www.andreasjakl.com/using-netgear-arlo-security-cameras-for-periodic-recording/)
 
 import datetime
 #import logging
@@ -332,12 +332,12 @@ class Arlo(object):
     # Set System Mode (Calendar) - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"schedule","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"active":true}}
     # Configure The Schedule (Calendar) - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"schedule","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"schedule":[{"modeId":"mode0","startTime":0},{"modeId":"mode2","startTime":28800000},{"modeId":"mode0","startTime":64800000},{"modeId":"mode0","startTime":86400000},{"modeId":"mode2","startTime":115200000},{"modeId":"mode0","startTime":151200000},{"modeId":"mode0","startTime":172800000},{"modeId":"mode2","startTime":201600000},{"modeId":"mode0","startTime":237600000},{"modeId":"mode0","startTime":259200000},{"modeId":"mode2","startTime":288000000},{"modeId":"mode0","startTime":324000000},{"modeId":"mode0","startTime":345600000},{"modeId":"mode2","startTime":374400000},{"modeId":"mode0","startTime":410400000},{"modeId":"mode0","startTime":432000000},{"modeId":"mode0","startTime":518400000}]}
     # Create Mode -
-    #    {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"add","resource":"rules","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"name":"Record video on arloq 1 if arloq 1 detects motion","id":"ruleNew","triggers":[{"type":"pirMotionActive","deviceId":"XXXXXXXXXXXXX","sensitivity":80}],"actions":[{"deviceId":"XXXXXXXXXXXXX","type":"recordVideo","stopCondition":{"type":"timeout","timeout":15}},{"type":"sendEmailAlert","recipients":["__OWNER_EMAIL__"]},{"type":"pushNotification"}]}}
+    #    {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"add","resource":"rules","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"name":"Record video on Camera 1 if Camera 1 detects motion","id":"ruleNew","triggers":[{"type":"pirMotionActive","deviceId":"XXXXXXXXXXXXX","sensitivity":80}],"actions":[{"deviceId":"XXXXXXXXXXXXX","type":"recordVideo","stopCondition":{"type":"timeout","timeout":15}},{"type":"sendEmailAlert","recipients":["__OWNER_EMAIL__"]},{"type":"pushNotification"}]}}
     #    {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"add","resource":"modes","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"name":"Test","rules":["rule3"]}}
     # Delete Mode - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"delete","resource":"modes/mode3","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true}
-    # arloq Off - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"arloqs/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"privacyActive":false}}
-    # Night Vision On - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"arloqs/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"zoom":{"topleftx":0,"toplefty":0,"bottomrightx":1280,"bottomrighty":720},"mirror":true,"flip":true,"nightVisionMode":1,"powerSaveMode":2}}
-    # Motion Detection Test - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"arloqs/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"motionSetupModeEnabled":true,"motionSetupModeSensitivity":80}}
+    # Camera Off - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"cameras/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"privacyActive":false}}
+    # Night Vision On - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"cameras/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"zoom":{"topleftx":0,"toplefty":0,"bottomrightx":1280,"bottomrighty":720},"mirror":true,"flip":true,"nightVisionMode":1,"powerSaveMode":2}}
+    # Motion Detection Test - {"from":"XXX-XXXXXXX_web","to":"XXXXXXXXXXXXX","action":"set","resource":"cameras/XXXXXXXXXXXXX","transId":"web!XXXXXXXX.XXXXXXXXXXXXXXXXXXXX","publishResponse":true,"properties":{"motionSetupModeEnabled":true,"motionSetupModeSensitivity":80}}
     #
     # device_id = locations.data.uniqueIds
     #
@@ -347,9 +347,9 @@ class Arlo(object):
     # System Properties: ("resource":"schedule")
     #   active (bool) - Mode Selection (true = Calendar)
     #
-    # arloq Properties: ("resource":"arloqs/{id}")
-    #   privacyActive (bool) - arloq On/Off
-    #   zoom (topleftx (int), toplefty (int), bottomrightx (int), bottomrighty (int)) - arloq Zoom Level
+    # Camera Properties: ("resource":"cameras/{id}")
+    #   privacyActive (bool) - Camera On/Off
+    #   zoom (topleftx (int), toplefty (int), bottomrightx (int), bottomrighty (int)) - Camera Zoom Level
     #   mirror (bool) - Mirror Image (left-to-right or right-to-left)
     #   flip (bool) - Flip Image Vertically
     #   nightVisionMode (int) - Night Mode Enabled/Disabled (1, 0)
@@ -436,7 +436,7 @@ class Arlo(object):
     # NOTE: Use this function if you need to run some code after subscribing to the eventstream, but before your callback to handle the events runs. 
     def TriggerAndHandleEvent(self, basestation, trigger, callback, timeout=120):
         if not callable(trigger):
-            raise Exception('The trigger(self, arloq) should be a callable function!')
+            raise Exception('The trigger(self, camera) should be a callable function!')
         if not callable(callback):
             raise Exception('The callback(self, event) should be a callable function!')
 
@@ -449,8 +449,8 @@ class Arlo(object):
     def GetBaseStationState(self, basestation):
         return self.NotifyAndGetResponse(basestation, {"action":"get","resource":"basestation","publishResponse":False})
 
-    def GetarloqState(self, basestation):
-        return self.NotifyAndGetResponse(basestation, {"action":"get","resource":"arloqs","publishResponse":False})
+    def GetCameraState(self, basestation):
+        return self.NotifyAndGetResponse(basestation, {"action":"get","resource":"cameras","publishResponse":False})
 
     def GetRules(self, basestation):
         return self.NotifyAndGetResponse(basestation, {"action":"get","resource":"rules","publishResponse":False})
@@ -482,13 +482,13 @@ class Arlo(object):
     #   "properties": {
     #       "brightness": -2
     #   },
-    #   "resource": "arloqs/XXXXXXXXXXXXX",
+    #   "resource": "cameras/XXXXXXXXXXXXX",
     #   "to": "336-XXXXXXX_web",
     #   "transId": "web!XXXXXXXX.389518!1514956240683"
     #}
     #
-    def AdjustBrightness(self, basestation, arloq, brightness=0):
-        return self.NotifyAndGetResponse(basestation, {"action":"set","resource":"arloqs/"+arloq.get('deviceId'),"publishResponse":True,"properties":{"brightness":brightness}})
+    def AdjustBrightness(self, basestation, camera, brightness=0):
+        return self.NotifyAndGetResponse(basestation, {"action":"set","resource":"cameras/"+camera.get('deviceId'),"publishResponse":True,"properties":{"brightness":brightness}})
 
     # NOTE: The Arlo API seems to disable calendar mode when switching to other modes, if it's enabled.
     # You should probably do the same, although, the UI reflects the switch from calendar mode to say armed mode without explicitly setting calendar mode to inactive.
@@ -501,10 +501,10 @@ class Arlo(object):
     def DeleteMode(self, basestation, mode):
         return self.NotifyAndGetResponse(basestation, {"action":"delete","resource":"modes/"+mode,"publishResponse":True})
 
-    # Privacy active = True - arloq is off.
-    # Privacy active = False - arloq is on.
-    def Togglearloq(self, basestation, arloq, active=True):
-        return self.NotifyAndGetResponse(basestation, {"action":"set","resource":"arloqs/"+arloq.get('deviceId'),"publishResponse":True,"properties":{"privacyActive":active}})
+    # Privacy active = True - Camera is off.
+    # Privacy active = False - Camera is on.
+    def ToggleCamera(self, basestation, camera, active=True):
+        return self.NotifyAndGetResponse(basestation, {"action":"set","resource":"cameras/"+camera.get('deviceId'),"publishResponse":True,"properties":{"privacyActive":active}})
 
     def Reset(self):
         return self.request.get('https://arlo.netgear.com/hmsweb/users/library/reset')
@@ -562,8 +562,8 @@ class Arlo(object):
         return self.request.put('https://arlo.netgear.com/hmsweb/users/locations/'+location_id, {"geoEnabled":active})
 
     ##
-    # This method returns an array that contains the basestation, arloqs, etc. and their metadata.
-    # If you pass in a valid device type ('basestation', 'arloq', etc.), this method will return an array of just those devices that match that type.
+    # This method returns an array that contains the basestation, cameras, etc. and their metadata.
+    # If you pass in a valid device type ('basestation', 'camera', etc.), this method will return an array of just those devices that match that type.
     ##
     def GetDevices(self, device_type=None):
         devices = self.request.get('https://arlo.netgear.com/hmsweb/users/devices')
@@ -589,9 +589,9 @@ class Arlo(object):
     #  "firstName":"Some",
     #  "lastName":"Body",
     #  "devices":{
-    #    "XXXXXXXXXXXXX":"arloq 1",
-    #    "XXXXXXXXXXXXX":"arloq 2 ",
-    #    "XXXXXXXXXXXXX":"arloq 3"
+    #    "XXXXXXXXXXXXX":"Camera 1",
+    #    "XXXXXXXXXXXXX":"Camera 2 ",
+    #    "XXXXXXXXXXXXX":"Camera 3"
     #  },
     #  "lastModified":1463977440911,
     #  "adminUser":true,
@@ -608,7 +608,7 @@ class Arlo(object):
     ##
     # This is an example of the json you would pass in the body to UpdateDisplayOrder() of your devices in the UI.
     #
-    # XXXXXXXXXXXXX is the device id of each arloq. You can get this from GetDevices().
+    # XXXXXXXXXXXXX is the device id of each camera. You can get this from GetDevices().
     #{
     #  "devices":{
     #    "XXXXXXXXXXXXX":1,
@@ -655,8 +655,8 @@ class Arlo(object):
     # All of the date info and device id you need to pass into this method are given in the results of the GetLibrary() call.
     #
     ##
-    def DeleteRecording(self, arloq, created_date, utc_created_date):
-        return self.request.post('https://arlo.netgear.com/hmsweb/users/library/recycle', {'data':[{'createdDate':created_date,'utcCreatedDate':utc_created_date,'deviceId':arloq.get('deviceId')}]})
+    def DeleteRecording(self, camera, created_date, utc_created_date):
+        return self.request.post('https://arlo.netgear.com/hmsweb/users/library/recycle', {'data':[{'createdDate':created_date,'utcCreatedDate':utc_created_date,'deviceId':camera.get('deviceId')}]})
 
     ##
     # Delete a batch of video recordings from Arlo.
@@ -740,20 +740,20 @@ class Arlo(object):
     # This stream needs to be called within 30 seconds or else it becomes invalid
     # It can be streamed via ffmpeg -re -i 'rtsps://<url>' -acodec copy -vcodec copy test.mp4
     # The request to /users/devices/startStream returns:
-    #{ "url":"rtsp://<url>:443/vzmodulelive?egressToken=b<xx>&userAgent=iOS&arloqId=<camid>" }
+    #{ "url":"rtsp://<url>:443/vzmodulelive?egressToken=b<xx>&userAgent=iOS&cameraId=<camid>" }
     #
     ##
-    def StartStream(self, basestation, arloq):
+    def StartStream(self, basestation, camera):
         
         # nonlocal variable hack for Python 2.x.
         class nl:
             stream_url_dict = None 
 
         def trigger(self):
-            nl.stream_url_dict = self.request.post('https://arlo.netgear.com/hmsweb/users/devices/startStream', {"to":arloq.get('parentId'),"from":self.user_id+"_web","resource":"arloqs/"+arloq.get('deviceId'),"action":"set","publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"startUserStream","arloqId":arloq.get('deviceId')}}, headers={"xcloudId":arloq.get('xCloudId')})
+            nl.stream_url_dict = self.request.post('https://arlo.netgear.com/hmsweb/users/devices/startStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.get('deviceId'),"action":"set","publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"startUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId":camera.get('xCloudId')})
 
         def callback(self, event):
-            if event.get("from") == basestation.get("deviceId") and event.get("resource") == "arloqs/"+arloq.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
+            if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
                 return nl.stream_url_dict['url'].replace("rtsp://", "rtsps://")
 
             return None
@@ -761,7 +761,7 @@ class Arlo(object):
         return self.TriggerAndHandleEvent(basestation, trigger, callback)
 
     ##
-    # This function causes the arloq to snapshot while recording.
+    # This function causes the camera to snapshot while recording.
     # NOTE: You MUST call StartStream() before calling this function.
     # If you call StartStream(), you have to start reading data from the stream, or streaming will be cancelled
     # and taking a snapshot may fail (since it requires the stream to be active).
@@ -771,13 +771,13 @@ class Arlo(object):
     #
     # NOTE: Use DownloadSnapshot() to download the actual image file.
     ##
-    def TriggerStreamSnapshot(self, basestation, arloq):
+    def TriggerStreamSnapshot(self, basestation, camera):
 
         def trigger(self):
-            self.request.post('https://arlo.netgear.com/hmsweb/users/devices/takeSnapshot', {'xcloudId':arloq.get('xCloudId'),'parentId':arloq.get('parentId'),'deviceId':arloq.get('deviceId'),'olsonTimeZone':arloq.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":arloq.get('xCloudId')})
+            self.request.post('https://arlo.netgear.com/hmsweb/users/devices/takeSnapshot', {'xcloudId':camera.get('xCloudId'),'parentId':camera.get('parentId'),'deviceId':camera.get('deviceId'),'olsonTimeZone':camera.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":camera.get('xCloudId')})
 
         def callback(self, event):
-            if event.get("deviceId") == arloq.get("deviceId") and event.get("resource") == "mediaUploadNotification":
+            if event.get("deviceId") == camera.get("deviceId") and event.get("resource") == "mediaUploadNotification":
                 presigned_content_url = event.get("presignedContentUrl")
                 if presigned_content_url is not None:
                     return presigned_content_url
@@ -787,38 +787,38 @@ class Arlo(object):
         return self.TriggerAndHandleEvent(basestation, trigger, callback)
 
     ##
-    # This function causes the arloq to record a fullframe snapshot.
+    # This function causes the camera to record a fullframe snapshot.
     #
     # The presignedFullFrameSnapshotUrl url is returned.
     #
     # Use DownloadSnapshot() to download the actual image file.
     ##
-    def TriggerFullFrameSnapshot(self, basestation, arloq):
+    def TriggerFullFrameSnapshot(self, basestation, camera):
 
         def trigger(self):
-            self.request.post("https://arlo.netgear.com/hmsweb/users/devices/fullFrameSnapshot", {"to":arloq.get("parentId"),"from":self.user_id+"_web","resource":"arloqs/"+arloq.get("deviceId"),"action":"set","publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"fullFrameSnapshot"}}, headers={"xcloudId":arloq.get("xCloudId")})
+            self.request.post("https://arlo.netgear.com/hmsweb/users/devices/fullFrameSnapshot", {"to":camera.get("parentId"),"from":self.user_id+"_web","resource":"cameras/"+camera.get("deviceId"),"action":"set","publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"fullFrameSnapshot"}}, headers={"xcloudId":camera.get("xCloudId")})
 
         def callback(self, event):
-            if event.get("from") == basestation.get("deviceId") and event.get("resource") == "arloqs/"+arloq.get("deviceId") and event.get("action") == "fullFrameSnapshotAvailable":
+            if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("action") == "fullFrameSnapshotAvailable":
                 return event.get("properties", {}).get("presignedFullFrameSnapshotUrl")
             return None
 
         return self.TriggerAndHandleEvent(basestation, trigger, callback)
 
     ##
-    # This function causes the arloq to start recording.
+    # This function causes the camera to start recording.
     #
     # You can get the timezone from GetDevices().
     ##
-    def StartRecording(self, basestation, arloq):
-        stream_url = self.StartStream(basestation, arloq)
-        self.request.post('https://arlo.netgear.com/hmsweb/users/devices/startRecord', {'xcloudId':arloq.get('xCloudId'),'parentId':arloq.get('parentId'),'deviceId':arloq.get('deviceId'),'olsonTimeZone':arloq.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":arloq.get('xCloudId')})
+    def StartRecording(self, basestation, camera):
+        stream_url = self.StartStream(basestation, camera)
+        self.request.post('https://arlo.netgear.com/hmsweb/users/devices/startRecord', {'xcloudId':camera.get('xCloudId'),'parentId':camera.get('parentId'),'deviceId':camera.get('deviceId'),'olsonTimeZone':camera.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":camera.get('xCloudId')})
         return stream_url
 
     ##
-    # This function causes the arloq to stop recording.
+    # This function causes the camera to stop recording.
     #
     # You can get the timezone from GetDevices().
     ##
-    def StopRecording(self, arloq):
-        return self.request.post('https://arlo.netgear.com/hmsweb/users/devices/stopRecord', {'xcloudId':arloq.get('xCloudId'),'parentId':arloq.get('parentId'),'deviceId':arloq.get('deviceId'),'olsonTimeZone':arloq.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":arloq.get('xCloudId')})
+    def StopRecording(self, camera):
+        return self.request.post('https://arlo.netgear.com/hmsweb/users/devices/stopRecord', {'xcloudId':camera.get('xCloudId'),'parentId':camera.get('parentId'),'deviceId':camera.get('deviceId'),'olsonTimeZone':camera.get('properties', {}).get('olsonTimeZone')}, headers={"xcloudId":camera.get('xCloudId')})
